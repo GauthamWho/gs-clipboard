@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" role="img" aria-label="Install G's Clipboard with one command">
+  <defs>
+    <linearGradient id="page2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5F9FF"/>
+      <stop offset="1" stop-color="#E8F1FF"/>
+    </linearGradient>
+    <linearGradient id="term" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A1024"/>
+      <stop offset="1" stop-color="#101B3D"/>
+    </linearGradient>
+    <filter id="shadow2" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#12306A" flood-opacity="0.18"/>
+    </filter>
+    <style>
+      .hh { font-family: "SF Pro Rounded", -apple-system, "Segoe UI", sans-serif; font-weight: 800; fill: #0B2E82; }
+      .tt { font-family: "SF Pro Rounded", -apple-system, "Segoe UI", sans-serif; font-weight: 700; fill: #0B2E82; }
+      .bb { font-family: "SF Pro Display", -apple-system, "Segoe UI", sans-serif; fill: #4A6087; }
+      .mono { font-family: "SF Mono", Menlo, monospace; font-size: 14px; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="440" fill="url(#page2)"/>
+  <text class="hh" x="600" y="56" font-size="34" text-anchor="middle">Install in one command</text>
+  <text class="bb" x="600" y="86" font-size="17" text-anchor="middle">No coding knowledge needed. Just copy, paste, press Return.</text>
+
+  <!-- Terminal -->
+  <g filter="url(#shadow2)" transform="translate(50, 120)">
+    <rect x="0" y="0" width="700" height="280" rx="16" fill="url(#term)"/>
+    <circle cx="26" cy="24" r="6" fill="#FF5F57"/>
+    <circle cx="48" cy="24" r="6" fill="#FEBC2E"/>
+    <circle cx="70" cy="24" r="6" fill="#28C840"/>
+    <text x="350" y="29" text-anchor="middle" fill="#7E90BA" font-size="12"
+          font-family="SF Pro Display, -apple-system, sans-serif">Terminal</text>
+
+    <text class="mono" x="28" y="82" fill="#7E90BA">~ %</text>
+    <text class="mono" x="70" y="82" fill="#E6EEFF">curl -fsSL https://raw.githubusercontent.com/</text>
+    <text class="mono" x="70" y="104" fill="#E6EEFF">GauthamWho/gs-clipboard/main/install.sh | bash</text>
+
+    <text class="mono" x="28" y="152" fill="#6FA8FF">→ Downloading the latest version…</text>
+    <text class="mono" x="28" y="176" fill="#6FA8FF">→ Installing to /Applications…</text>
+    <text class="mono" x="28" y="200" fill="#4ADE80">✅ Installed. G's Clipboard is in your menu bar.</text>
+    <text class="mono" x="28" y="232" fill="#9FB3D9">Press ⌥V anywhere to open your history.</text>
+    <text class="mono" x="28" y="254" fill="#9FB3D9">Everything stays on this Mac.</text>
+  </g>
+
+  <!-- Steps -->
+  <g transform="translate(800, 130)">
+    <circle cx="16" cy="16" r="16" fill="#2E7BFF"/>
+    <text x="16" y="22" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="700"
+          font-family="SF Pro Rounded, -apple-system, sans-serif">1</text>
+    <text class="tt" x="46" y="12" font-size="19">Open Terminal</text>
+    <text class="bb" x="46" y="34" font-size="14">Press ⌘Space, type “Terminal”,</text>
+    <text class="bb" x="46" y="53" font-size="14">press Return.</text>
+
+    <circle cx="16" cy="98" r="16" fill="#2E7BFF"/>
+    <text x="16" y="104" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="700"
+          font-family="SF Pro Rounded, -apple-system, sans-serif">2</text>
+    <text class="tt" x="46" y="94" font-size="19">Paste the command</text>
+    <text class="bb" x="46" y="116" font-size="14">Copy the line from the README,</text>
+    <text class="bb" x="46" y="135" font-size="14">paste it, press Return.</text>
+
+    <circle cx="16" cy="180" r="16" fill="#2E7BFF"/>
+    <text x="16" y="186" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="700"
+          font-family="SF Pro Rounded, -apple-system, sans-serif">3</text>
+    <text class="tt" x="46" y="176" font-size="19">You're done</text>
+    <text class="bb" x="46" y="198" font-size="14">Look for the clipboard icon and</text>
+    <text class="bb" x="46" y="217" font-size="14">press ⌥V.</text>
+  </g>
+</svg>

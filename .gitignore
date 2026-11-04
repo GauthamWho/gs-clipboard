@@ -1,0 +1,8 @@
+.build/
+build/
+.DS_Store
+Resources/AppIcon.iconset/
+GsClipboard.app.zip
+GsClipboard.app.zip.sha256
+*.xcuserstate
+*.swp
