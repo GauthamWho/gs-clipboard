@@ -94,6 +94,11 @@ final class ClipStore: ObservableObject {
     func addImage(png: Data, source: String?) {
         guard let image = NSImage(data: png) else { return }
         let hash = Self.sha256(png)
+        // Same picture again: just move it to the top; never write a second, untracked file.
+        if items.contains(where: { $0.hash == hash }) {
+            insert(kind: .image, text: nil, preview: "", blobName: nil, hash: hash, source: source)
+            return
+        }
         let name = "\(UUID().uuidString).png"
         do {
             try png.write(to: blobsDir.appendingPathComponent(name))
@@ -271,7 +276,17 @@ final class ClipStore: ObservableObject {
             }
         }
         compactOldImages()
+        removeUntrackedBlobs()
         save()
+    }
+
+    /// Deletes image files no history item points to (left behind by a crash or an older version).
+    private func removeUntrackedBlobs() {
+        let tracked = Set(items.compactMap(\.blobName))
+        let files = (try? FileManager.default.contentsOfDirectory(atPath: blobsDir.path)) ?? []
+        for f in files where !tracked.contains(f) && !f.hasPrefix(".") {
+            try? FileManager.default.removeItem(at: blobsDir.appendingPathComponent(f))
+        }
     }
 
     /// Screenshots older than two days are re-saved as high-quality HEIC (about a tenth of the

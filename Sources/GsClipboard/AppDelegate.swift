@@ -66,6 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model = AppModel()
         configureLoginItemIfNeeded()
 
+        #if DEBUG
         // Debug helper: copy the newest item back to the pasteboard and report
         // what landed there, then exit. Used to verify text and image restore.
         if CommandLine.arguments.contains("--selftest") {
@@ -80,7 +81,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
             return
         }
+        #endif
 
+        #if DEBUG
         // Debug helper: print the newest history items and exit. Used to confirm
         // that a copy really was captured.
         if CommandLine.arguments.contains("--dump") {
@@ -91,7 +94,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.terminate(nil)
             return
         }
+        #endif
 
+        #if DEBUG
         // Debug helper: install a local zip as an update (used for testing).
         if let flag = CommandLine.arguments.firstIndex(of: "--install-update"),
            flag + 1 < CommandLine.arguments.count {
@@ -100,6 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             updates.applyUpdate(zipURL: zip, destination: destination)
             return
         }
+        #endif
 
         state = PanelState(model: model)
         state.onPick = { [weak self] item, paste in self?.pick(item, paste: paste) }

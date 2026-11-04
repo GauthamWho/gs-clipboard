@@ -27,6 +27,20 @@ This project follows [semantic versioning](https://semver.org).
 - Mac-standard keys: ↑↓, ↩ paste, ⌥↩ copy only, ⌘1–9, ⌘C copy, ⌘P pin,
   ⌘⌫ delete, ⌘E emoji, Tab switches filter, Home/End/Page keys, ⌘W and ⎋ close.
 
+### Security (checked with Cloudflare's security-audit skill)
+- Updates and the installer only accept a bundle with the right app ID and an
+  intact code signature; the updater never deletes the current app unless its
+  backup succeeded.
+- Rich-text (HTML) copies are turned into plain text without the system HTML
+  importer, so copying can never make the app load anything from the internet.
+- A paste is only sent once the app you were in is back in front; otherwise the
+  pick just stays on the clipboard.
+- More password-manager and private clipboard types are skipped.
+- Copying the same image twice no longer leaves a stray file; untracked image
+  files are swept up.
+- One-time codes are cleared on a 5-minute cycle, so they really go after ~20 min.
+- Debug-only command-line flags are removed from release builds.
+
 ## [1.0.1] — 2026-11-04
 
 ### Fixed

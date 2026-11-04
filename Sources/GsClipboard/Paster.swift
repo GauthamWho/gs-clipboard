@@ -34,7 +34,11 @@ enum Paster {
         func attempt() {
             let front = NSWorkspace.shared.frontmostApplication
             let ready = app == nil || front?.processIdentifier == app?.processIdentifier
-            if ready || tries >= 12 {
+            if !ready && tries >= 12 {
+                // Never press ⌘V in some other app; the pick stays on the clipboard.
+                Diag.log("paste skipped: \(app?.localizedName ?? "?") did not come back to the front"); return
+            }
+            if ready {
                 // A short beat so the target window has focused its text field again.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     sendCommandV()
@@ -54,7 +58,8 @@ enum Paster {
         var tries = 0
         func attempt() {
             let ready = app == nil || NSWorkspace.shared.frontmostApplication?.processIdentifier == app?.processIdentifier
-            if ready || tries >= 12 {
+            if !ready && tries >= 12 { return }
+            if ready {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     let src = CGEventSource(stateID: .combinedSessionState)
                     let units = Array(text.utf16)

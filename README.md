@@ -190,6 +190,9 @@ Message [@gautamwho on Instagram](https://instagram.com/gautamwho) or open an
 - Accessibility is optional and only used to paste or type for you and to find
   your text cursor. No Screen Recording permission, no Full Disk Access.
 - The only network request is the daily version check to GitHub.
+- ✅ Checked with Cloudflare's [security-audit skill](https://github.com/cloudflare/security-audit-skill):
+  no confirmed vulnerabilities, and its leads and hardening notes are fixed.
+  See [SECURITY.md](SECURITY.md).
 
 Read the full details in [PRIVACY.md](PRIVACY.md).
 

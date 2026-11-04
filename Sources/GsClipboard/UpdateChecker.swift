@@ -233,6 +233,10 @@ final class UpdateChecker: ObservableObject {
             guard Bundle(url: source)?.bundleIdentifier == Self.bundleID else {
                 throw UpdateError.badBundle
             }
+            // The bundle must carry an intact code signature (nothing altered after signing).
+            guard (try? runProcess("/usr/bin/codesign", ["--verify", "--deep", "--strict", source.path])) != nil else {
+                throw UpdateError.badBundle
+            }
 
             let target = destination ?? Bundle.main.bundlePath
             let parent = (target as NSString).deletingLastPathComponent
@@ -254,7 +258,12 @@ final class UpdateChecker: ObservableObject {
             BACKUP=\(shellQuote(backup.path))
 
             rm -rf "$BACKUP"
-            cp -R "$DEST" "$BACKUP" 2>/dev/null || true
+            # Never remove the current app unless a full backup exists.
+            if ! cp -R "$DEST" "$BACKUP"; then
+                echo "backup failed; keeping the current version"
+                open "$DEST"
+                exit 1
+            fi
             rm -rf "$DEST"
 
             if cp -R "$SRC" "$DEST"; then

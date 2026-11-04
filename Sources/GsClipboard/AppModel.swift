@@ -37,7 +37,8 @@ final class AppModel: ObservableObject {
     /// Smart cleanup at launch and hourly.
     func startCare(isPanelOpen: @escaping () -> Bool) {
         store.cleanUp()
-        let t = Timer(timeInterval: 3600, repeats: true) { [weak self] _ in
+        // Every 5 minutes, so one-time codes really go after ~20 minutes.
+        let t = Timer(timeInterval: 300, repeats: true) { [weak self] _ in
             Task { @MainActor in if !isPanelOpen() { self?.store.cleanUp() } }
         }
         RunLoop.main.add(t, forMode: .common)

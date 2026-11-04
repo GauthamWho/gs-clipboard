@@ -54,7 +54,8 @@ ditto -x -k "$TMP/app.zip" "$TMP/unpack"
 SRC="$TMP/unpack/$APP"
 # Older releases ship the app under its earlier name; accept whichever app is inside.
 [ -d "$SRC" ] || SRC="$(find "$TMP/unpack" -maxdepth 1 -name '*.app' | head -1)"
-if [ ! -d "$SRC" ]; then
+BID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$SRC/Contents/Info.plist" 2>/dev/null || true)"
+if [ ! -d "$SRC" ] || [ "$BID" != "com.gautham.gsclipboard" ] || ! codesign --verify --deep --strict "$SRC" 2>/dev/null; then
     red "The download did not contain $APP."
     exit 1
 fi
