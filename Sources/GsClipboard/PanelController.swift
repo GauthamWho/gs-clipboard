@@ -17,7 +17,7 @@ final class CursorPanel: NSPanel {
 /// Rounded card + shadow drawn around the SwiftUI content. The window itself is
 /// transparent so the corners and shadow are real, not square.
 struct PanelChrome<Content: View>: View {
-    static var margin: CGFloat { 18 }
+    static var margin: CGFloat { 12 }
 
     let content: Content
 
@@ -37,7 +37,7 @@ struct PanelChrome<Content: View>: View {
 @MainActor
 final class PanelController {
     /// Size of the visible card (matches `ContentView`'s frame).
-    static let cardSize = NSSize(width: 400, height: 520)
+    static let cardSize = NSSize(width: 320, height: 440)
 
     private let panel: CursorPanel
     private var outsideClickMonitor: Any?

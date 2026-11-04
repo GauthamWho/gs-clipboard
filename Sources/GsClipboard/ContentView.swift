@@ -33,7 +33,7 @@ struct ContentView: View {
             Divider()
             footer
         }
-        .frame(width: 400, height: 520)
+        .frame(width: 320, height: 440)
         .onChange(of: model.store.items.count) { oldValue, newValue in
             // Proof for diagnostics that the panel picks up new captures live.
             Diag.log("panel refreshed \(oldValue) -> \(newValue) items")
@@ -71,19 +71,19 @@ struct ContentView: View {
                 .foregroundStyle(.secondary)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
     }
 
     @ViewBuilder
     private var list: some View {
         if filtered.isEmpty {
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 Image(systemName: "doc.on.clipboard")
-                    .font(.system(size: 32))
+                    .font(.system(size: 28))
                     .foregroundStyle(.tertiary)
                 Text(model.store.items.isEmpty ? "Copy something to get started" : "No matches")
-                    .font(.callout)
+                    .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -112,9 +112,9 @@ struct ContentView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             Text("\(model.store.items.count) items")
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
             Spacer()
             if let version = updates.available?.version {
@@ -132,7 +132,7 @@ struct ContentView: View {
                 model.store.clearAll()
             }
             .buttonStyle(.plain)
-            .font(.caption)
+            .font(.caption2)
             Button {
                 onClose()
                 onOpenSettings()
@@ -141,6 +141,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .help("Settings")
+            .font(.caption2)
             Button {
                 NSApp.terminate(nil)
             } label: {
@@ -148,9 +149,10 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .help("Quit G's Clipboard")
+            .font(.caption2)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
     }
 }
 
@@ -162,7 +164,7 @@ struct ClipRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 6) {
             Button(action: onCopy) {
-                HStack(alignment: .top, spacing: 10) {
+                HStack(alignment: .top, spacing: 8) {
                     thumbnail
                     textContent
                 }
@@ -173,8 +175,8 @@ struct ClipRow: View {
 
             actions
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
     }
 
     @ViewBuilder
@@ -185,35 +187,35 @@ struct ClipRow: View {
             Image(nsImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(width: 44, height: 44)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .frame(width: 32, height: 32)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
         } else {
             Image(systemName: iconName)
-                .font(.system(size: 16))
-                .frame(width: 44, height: 44)
+                .font(.system(size: 12))
+                .frame(width: 32, height: 32)
                 .foregroundStyle(.secondary)
         }
     }
 
     private var textContent: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(item.preview.isEmpty ? "(empty)" : item.preview)
                 .lineLimit(2)
-                .font(.system(size: 13))
+                .font(.system(size: 11))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 Text(relativeTime)
                 if let source = item.sourceApp {
                     Text("· \(source)")
                 }
             }
-            .font(.caption2)
+            .font(.footnote)
             .foregroundStyle(.secondary)
         }
     }
 
     private var actions: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Button {
                 model.store.togglePin(item)
             } label: {
@@ -222,6 +224,7 @@ struct ClipRow: View {
             .buttonStyle(.plain)
             .foregroundStyle(item.pinned ? .orange : .secondary)
             .help(item.pinned ? "Unpin" : "Pin")
+            .font(.caption2)
 
             Button {
                 model.store.delete(item)
@@ -231,8 +234,8 @@ struct ClipRow: View {
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
             .help("Delete")
+            .font(.caption2)
         }
-        .font(.caption)
     }
 
     private var iconName: String {
