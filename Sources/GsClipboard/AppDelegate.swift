@@ -5,7 +5,7 @@ import ServiceManagement
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
-    private var popover: NSPopover!
+    private var panel: PanelController!
     private var model: AppModel!
     private let hotKey = HotKeyManager()
     private let updates = UpdateChecker.shared
@@ -98,18 +98,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        popover = NSPopover()
-        popover.behavior = .transient
-        popover.animates = true
-        popover.contentSize = NSSize(width: 400, height: 520)
-        popover.contentViewController = NSHostingController(
-            rootView: ContentView(
+        panel = PanelController {
+            ContentView(
                 model: model,
                 updates: updates,
-                onClose: { [weak self] in self?.closePopover() },
+                onClose: { [weak self] in self?.closePanel() },
                 onOpenSettings: { [weak self] in self?.showSettings() }
             )
-        )
+        }
+        panel.onHide = { [weak self] in self?.restorePreviousApp() }
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
@@ -123,7 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         hotKey.onPressed = { [weak self] in
-            self?.togglePopover(nil)
+            self?.togglePanel()
         }
         hotKey.register()
 
@@ -134,7 +131,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if CommandLine.arguments.contains("--show") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.showPopover()
+                self?.showPanel()
+            }
+        }
+
+        if let flag = CommandLine.arguments.firstIndex(of: "--snapshot"),
+           flag + 1 < CommandLine.arguments.count {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                guard let self else { return }
+                let url = URL(fileURLWithPath: CommandLine.arguments[flag + 1])
+                self.panel.snapshot(to: url)
+                NSApp.terminate(nil)
             }
         }
 
@@ -174,12 +181,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if NSApp.currentEvent?.type == .rightMouseUp {
             showStatusMenu()
         } else {
-            togglePopover(sender)
+            togglePanel()
         }
     }
 
     private func showStatusMenu() {
-        if popover.isShown { closePopover() }
+        if panel.isVisible { closePanel() }
 
         let menu = NSMenu()
 
@@ -268,33 +275,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSLog("GsClipboard: settings window shown")
     }
 
-    // MARK: - Popover
+    // MARK: - Panel
 
-    @objc private func togglePopover(_ sender: Any?) {
-        if popover.isShown {
-            closePopover()
+    @objc private func togglePanel() {
+        if panel.isVisible {
+            closePanel()
         } else {
-            showPopover()
+            showPanel()
         }
     }
 
-    private func showPopover() {
-        guard let button = statusItem.button else { return }
-        if !popover.isShown {
+    private func showPanel() {
+        if !panel.isVisible {
             previousApp = NSWorkspace.shared.frontmostApplication
         }
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        NSApp.activate(ignoringOtherApps: true)
-        NotificationCenter.default.post(name: .gsClipboardDidShow, object: nil)
-        if let window = popover.contentViewController?.view.window {
-            window.makeKey()
-            Diag.log("popover shown items=\(model.store.items.count) key=\(window.isKeyWindow)")
-        }
+        panel.show()
     }
 
-    private func closePopover() {
-        popover.performClose(nil)
-        // Hand focus back so the next ⌘V lands in whatever app you were using.
+    private func closePanel() {
+        panel.hide()
+    }
+
+    /// Hands focus back so the next ⌘V lands in whatever app you were using.
+    private func restorePreviousApp() {
         if let previousApp, previousApp.bundleIdentifier != Bundle.main.bundleIdentifier {
             previousApp.activate(options: [])
         }
