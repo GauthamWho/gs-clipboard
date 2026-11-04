@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 import ServiceManagement
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
@@ -69,9 +70,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 model.copy(item)
                 let pb = NSPasteboard.general
                 let types = pb.types?.map(\.rawValue).joined(separator: ",") ?? "none"
-                NSLog("GsClipboard: selftest kind=\(item.kind.rawValue) types=\(types)")
+                Diag.log("selftest kind=\(item.kind.rawValue) types=\(types)")
             } else {
-                NSLog("GsClipboard: selftest no items")
+                Diag.log("selftest no items")
+            }
+            NSApp.terminate(nil)
+            return
+        }
+
+        // Debug helper: print the newest history items and exit. Used to confirm
+        // that a copy really was captured.
+        if CommandLine.arguments.contains("--dump") {
+            Diag.log("dump: \(model.store.items.count) items")
+            for item in model.store.items.prefix(10) {
+                print("[\(item.kind.rawValue)] \(item.preview)")
             }
             NSApp.terminate(nil)
             return
@@ -273,9 +285,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(name: .gsClipboardDidShow, object: nil)
         if let window = popover.contentViewController?.view.window {
             window.makeKey()
-            NSLog("GsClipboard: popover shown=\(popover.isShown) key=\(window.isKeyWindow) size=\(window.frame.size)")
+            Diag.log("popover shown items=\(model.store.items.count) key=\(window.isKeyWindow)")
         }
     }
 

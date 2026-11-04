@@ -1,6 +1,12 @@
 import SwiftUI
 import AppKit
 
+extension Notification.Name {
+    /// Posted by `AppDelegate` every time the panel opens, so the view can
+    /// clear any leftover search text and scroll back to the newest item.
+    static let gsClipboardDidShow = Notification.Name("gsClipboardDidShow")
+}
+
 struct ContentView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var updates: UpdateChecker
@@ -8,6 +14,7 @@ struct ContentView: View {
     var onOpenSettings: () -> Void
 
     @State private var search = ""
+    @State private var scrollReset = 0
     @FocusState private var searchFocused: Bool
 
     private var filtered: [ClipItem] {
@@ -27,7 +34,17 @@ struct ContentView: View {
             footer
         }
         .frame(width: 400, height: 520)
+        .onChange(of: model.store.items.count) { oldValue, newValue in
+            // Proof for diagnostics that the panel picks up new captures live.
+            Diag.log("panel refreshed \(oldValue) -> \(newValue) items")
+        }
         .onAppear { search = "" }
+        .onReceive(NotificationCenter.default.publisher(for: .gsClipboardDidShow)) { _ in
+            // Always show the newest items, even if a search was left over.
+            search = ""
+            scrollReset += 1
+            searchFocused = true
+        }
         .task {
             // The popover window becomes key just after the view appears,
             // so nudge focus once it does.
@@ -71,18 +88,26 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(filtered) { item in
-                        ClipRow(item: item, model: model) {
-                            model.copy(item)
-                            onClose()
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(filtered) { item in
+                            ClipRow(item: item, model: model) {
+                                model.copy(item)
+                                onClose()
+                            }
+                            .id(item.id)
+                            Divider().padding(.leading, 12)
                         }
-                        Divider().padding(.leading, 12)
+                    }
+                }
+                .frame(maxHeight: .infinity)
+                .onChange(of: scrollReset) { _, _ in
+                    if let first = filtered.first {
+                        proxy.scrollTo(first.id, anchor: .top)
                     }
                 }
             }
-            .frame(maxHeight: .infinity)
         }
     }
 

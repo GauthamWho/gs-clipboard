@@ -141,3 +141,10 @@ When someone reports a problem:
 
 4. If their history is gone, check
    `~/Library/Application Support/G's Clipboard/`.
+5. If a copy "did not appear", open `~/Library/Logs/G's Clipboard.log`. Every
+   capture is logged as `captured text change=… len=…` and every panel update as
+   `panel refreshed … -> … items`. If the capture line is there but the refresh
+   line is missing, the panel is not updating — that was the 1.0.0 bug, fixed in
+   1.0.1.
+6. Make sure the user is not also running another clipboard manager, since two
+   apps can claim the same shortcut.

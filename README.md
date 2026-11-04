@@ -213,6 +213,24 @@ Or open **System Settings → Privacy & Security** and click **Open Anyway**.
 </details>
 
 <details>
+<summary><b>I copied something but the panel did not show it.</b></summary>
+
+Make sure you are looking at **G's Clipboard** (the clipboard icon with the blue
+**G**), not another clipboard app. If you still have an old clipboard manager
+installed, two panels can fight over the same shortcut.
+
+If the app is up to date (1.0.1 or newer) the list updates instantly. If you are
+on 1.0.0, quit the app from the menu-bar icon and open it again — or update from
+**Settings → Updates**.
+
+Still stuck? Send the log file, which stays on your Mac:
+
+```bash
+open "$HOME/Library/Logs/G's Clipboard.log"
+```
+</details>
+
+<details>
 <summary><b>⌥V does nothing.</b></summary>
 
 Another app may already use that shortcut. Quit that app, or tell us which one

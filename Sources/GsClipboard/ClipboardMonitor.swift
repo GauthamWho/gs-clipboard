@@ -19,6 +19,7 @@ final class ClipboardMonitor {
         }
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
+        Diag.log("monitor started (changeCount=\(lastChangeCount))")
     }
 
     func stop() {
@@ -33,18 +34,21 @@ final class ClipboardMonitor {
         lastChangeCount = count
         if ignoreNextChange {
             ignoreNextChange = false
+            Diag.log("skipped change \(count) (written by us)")
             return
         }
-        capture(pasteboard)
+        capture(pasteboard, changeCount: count)
     }
 
-    private func capture(_ pasteboard: NSPasteboard) {
+    private func capture(_ pasteboard: NSPasteboard, changeCount: Int) {
         let source = NSWorkspace.shared.frontmostApplication?.localizedName
+        let types = pasteboard.types?.map(\.rawValue).joined(separator: ",") ?? "none"
 
         if let data = pasteboard.data(forType: .png) ?? pasteboard.data(forType: .tiff),
            let image = NSImage(data: data),
            let png = image.pngData() {
             store.addImage(png: png, source: source)
+            Diag.log("captured image change=\(changeCount) from=\(source ?? "?")")
             return
         }
 
@@ -52,12 +56,46 @@ final class ClipboardMonitor {
                                              options: [.urlReadingFileURLsOnly: true]) as? [URL],
            !urls.isEmpty {
             store.addFiles(urls, source: source)
+            Diag.log("captured \(urls.count) file(s) change=\(changeCount)")
             return
         }
 
-        if let text = pasteboard.string(forType: .string), !text.isEmpty {
+        if let text = plainText(from: pasteboard), !text.isEmpty {
             store.addText(text, source: source)
+            Diag.log("captured text change=\(changeCount) len=\(text.count) from=\(source ?? "?")")
+            return
         }
+
+        Diag.log("change=\(changeCount) had no usable content (types: \(types))")
+    }
+
+    /// Some apps copy rich content without a plain-string flavour. Fall back to
+    /// HTML then RTF and strip the markup so the text is still saved.
+    private func plainText(from pasteboard: NSPasteboard) -> String? {
+        if let text = pasteboard.string(forType: .string), !text.isEmpty {
+            return text
+        }
+
+        if let html = pasteboard.data(forType: .html),
+           let attributed = try? NSAttributedString(
+                data: html,
+                options: [.documentType: NSAttributedString.DocumentType.html,
+                          .characterEncoding: String.Encoding.utf8.rawValue],
+                documentAttributes: nil),
+           !attributed.string.isEmpty {
+            return attributed.string
+        }
+
+        if let rtf = pasteboard.data(forType: .rtf),
+           let attributed = try? NSAttributedString(
+                data: rtf,
+                options: [.documentType: NSAttributedString.DocumentType.rtf],
+                documentAttributes: nil),
+           !attributed.string.isEmpty {
+            return attributed.string
+        }
+
+        return nil
     }
 }
 

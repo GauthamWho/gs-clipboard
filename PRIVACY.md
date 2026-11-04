@@ -20,6 +20,11 @@ Everything is kept in:
   is easier to read.
 - When each item was copied.
 
+A small **diagnostic log** is also written to `~/Library/Logs/G's Clipboard.log`.
+It records things like "captured text, 42 characters" and "panel opened", so a
+problem can be diagnosed without seeing your actual content. It is plain text on
+your Mac and you can delete it at any time.
+
 This data never leaves your Mac. Uninstalling the app and deleting that folder
 removes it permanently.
 
