@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds "G's Clipboard.app" from source.
+# Builds "Gautham's Clipboard.app" from source.
 #
 #   ./build.sh                 # fast local build (your Mac's architecture)
 #   UNIVERSAL=1 ./build.sh     # Apple Silicon + Intel (used for releases)
@@ -7,9 +7,9 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-APP_NAME="G's Clipboard"
+APP_NAME="Gautham's Clipboard"
 EXECUTABLE="GsClipboard"
-VERSION="${VERSION:-1.0.0}"
+VERSION="${VERSION:-2.0.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 
 echo "==> Building $APP_NAME $VERSION ($BUILD_NUMBER)..."
@@ -49,14 +49,18 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>
-    <key>NSHumanReadableCopyright</key><string>Copyright © 2026 Gautam Who. All rights reserved.</string>
+    <key>NSHumanReadableCopyright</key><string>Copyright © 2026 GauthamWho. All rights reserved.</string>
 </dict>
 </plist>
 PLIST
 
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
-echo "==> Signing (ad-hoc)..."
-codesign --force --deep --sign - "$APP"
+# A stable signing identity keeps the Accessibility permission across rebuilds
+# (ad-hoc signatures change every build, so macOS forgets the permission).
+SIGN_ID="${SIGN_ID:-$(security find-identity -p codesigning -v 2>/dev/null | awk '/Apple Development|Developer ID Application/ {print $2; exit}')}"
+SIGN_ID="${SIGN_ID:--}"
+echo "==> Signing ($SIGN_ID)..."
+codesign --force --deep --sign "$SIGN_ID" "$APP"
 
 echo "==> Built: $APP"

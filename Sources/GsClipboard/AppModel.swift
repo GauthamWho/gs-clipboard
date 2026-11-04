@@ -26,8 +26,21 @@ final class AppModel: ObservableObject {
         monitor.start()
     }
 
+    private var careTimer: Timer?
+
     func copy(_ item: ClipItem) {
         monitor.ignoreNextChange = true
         store.copyToPasteboard(item)
+        store.markUsed(item)
+    }
+
+    /// Smart cleanup at launch and hourly.
+    func startCare(isPanelOpen: @escaping () -> Bool) {
+        store.cleanUp()
+        let t = Timer(timeInterval: 3600, repeats: true) { [weak self] _ in
+            Task { @MainActor in if !isPanelOpen() { self?.store.cleanUp() } }
+        }
+        RunLoop.main.add(t, forMode: .common)
+        careTimer = t
     }
 }

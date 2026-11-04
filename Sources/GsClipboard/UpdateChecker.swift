@@ -66,9 +66,9 @@ final class UpdateChecker: ObservableObject {
         var errorDescription: String? {
             switch self {
             case .badArchive: return "The downloaded file was not a valid app."
-            case .badBundle: return "The downloaded app is not G's Clipboard."
+            case .badBundle: return "The downloaded app is not Gautham's Clipboard."
             case .noPermission:
-                return "G's Clipboard cannot replace itself in this folder. Please reinstall it with the one-line command from the website."
+                return "Gautham's Clipboard cannot replace itself in this folder. Please reinstall it with the one-line command from the website."
             case .downloadFailed(let message): return message
             }
         }
@@ -171,7 +171,7 @@ final class UpdateChecker: ObservableObject {
         guard let release = available, !isInstalling else { return }
 
         let alert = NSAlert()
-        alert.messageText = "Update to G's Clipboard \(release.version)?"
+        alert.messageText = "Update to Gautham's Clipboard \(release.version)?"
         alert.informativeText = "The app will close, install the new version, and reopen. Your clipboard history stays where it is."
         alert.addButton(withTitle: "Install Update")
         alert.addButton(withTitle: "Later")

@@ -1,37 +1,43 @@
+// Gautham's Clipboard by GauthamWho. Copyright © 2026 GauthamWho. All rights reserved. See LICENSE.
 import AppKit
+import ImageIO
 
-/// Caches downscaled thumbnails so scrolling a long history of large
-/// screenshots doesn't re-decode full-resolution images on every frame.
+/// Downscaled images for the list (thumbnails) and the hover preview, decoded once with
+/// ImageIO so scrolling a long history of big screenshots stays smooth.
 @MainActor
 final class ThumbnailCache {
     static let shared = ThumbnailCache()
 
-    private let cache = NSCache<NSURL, NSImage>()
+    private let cache = NSCache<NSString, NSImage>()
+    private var sizes: [URL: CGSize] = [:]
 
-    private init() {
-        cache.countLimit = 400
+    private init() { cache.countLimit = 300 }
+
+    /// `maxPixel` is the longest side in pixels (points × 2 for Retina).
+    func image(for url: URL, maxPixel: Int = 260) -> NSImage? {
+        let key = "\(url.path)#\(maxPixel)" as NSString
+        if let hit = cache.object(forKey: key) { return hit }
+        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+        let opts: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+        ]
+        guard let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, opts as CFDictionary) else { return nil }
+        let img = NSImage(cgImage: cg, size: NSSize(width: CGFloat(cg.width) / 2, height: CGFloat(cg.height) / 2))
+        cache.setObject(img, forKey: key)
+        return img
     }
 
-    func image(for url: URL, maxPixel: CGFloat = 176) -> NSImage? {
-        let key = url as NSURL
-        if let cached = cache.object(forKey: key) { return cached }
-        guard let source = NSImage(contentsOf: url) else { return nil }
-        let size = source.size
-        guard size.width > 0, size.height > 0 else { return nil }
-
-        let factor = min(1, maxPixel / max(size.width, size.height))
-        let target = NSSize(width: max(1, size.width * factor),
-                            height: max(1, size.height * factor))
-
-        let thumb = NSImage(size: target)
-        thumb.lockFocus()
-        source.draw(in: NSRect(origin: .zero, size: target),
-                    from: NSRect(origin: .zero, size: size),
-                    operation: .copy,
-                    fraction: 1)
-        thumb.unlockFocus()
-
-        cache.setObject(thumb, forKey: key)
-        return thumb
+    /// Full pixel size of the stored image.
+    func pixelSize(for url: URL) -> CGSize? {
+        if let s = sizes[url] { return s }
+        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
+              let w = props[kCGImagePropertyPixelWidth] as? Int, let h = props[kCGImagePropertyPixelHeight] as? Int else { return nil }
+        let s = CGSize(width: w, height: h)
+        sizes[url] = s
+        return s
     }
 }

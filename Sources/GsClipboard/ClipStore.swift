@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import CryptoKit
+import ImageIO
 
 enum ClipKind: String, Codable {
     case text
@@ -18,6 +19,9 @@ struct ClipItem: Identifiable, Codable, Equatable {
     var createdAt: Date
     var pinned: Bool
     var sourceApp: String?
+    /// How often it was pasted again, and when. Drives smart cleanup.
+    var useCount: Int?
+    var lastUsed: Date?
 }
 
 @MainActor
@@ -42,10 +46,16 @@ final class ClipStore: ObservableObject {
     init() {
         let fm = FileManager.default
         let base = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        supportDir = base.appendingPathComponent("G's Clipboard", isDirectory: true)
+        supportDir = base.appendingPathComponent("Gautham's Clipboard", isDirectory: true)
+        // Keep history from the old "G's Clipboard" name.
+        let legacy = base.appendingPathComponent("G's Clipboard", isDirectory: true)
+        if !fm.fileExists(atPath: supportDir.path), fm.fileExists(atPath: legacy.path) {
+            try? fm.moveItem(at: legacy, to: supportDir)
+        }
         blobsDir = supportDir.appendingPathComponent("blobs", isDirectory: true)
         indexURL = supportDir.appendingPathComponent("index.json")
         try? fm.createDirectory(at: blobsDir, withIntermediateDirectories: true)
+        Self.keepOutOfTheWay(supportDir)
         load()
     }
 
@@ -134,6 +144,16 @@ final class ClipStore: ObservableObject {
         save()
     }
 
+    /// Called when an item is pasted again: it moves to the top and lives longer.
+    func markUsed(_ item: ClipItem) {
+        guard let i = items.firstIndex(where: { $0.id == item.id }) else { return }
+        items[i].useCount = (items[i].useCount ?? 0) + 1
+        items[i].lastUsed = Date()
+        items[i].createdAt = Date()
+        items.sort(by: sortComparator)
+        save()
+    }
+
     func togglePin(_ item: ClipItem) {
         guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
         items[index].pinned.toggle()
@@ -187,6 +207,98 @@ final class ClipStore: ObservableObject {
         let ids = Set(toRemove.map(\.id))
         toRemove.forEach(removeBlob)
         items.removeAll { ids.contains($0.id) }
+    }
+
+    // MARK: - Smart care
+
+    /// History lives only in ~/Library/Application Support/Gautham's Clipboard. It is kept out of
+    /// Time Machine and Spotlight so it never bloats backups or shows up in searches.
+    private static func keepOutOfTheWay(_ dir: URL) {
+        var url = dir
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? url.setResourceValues(values)
+        let marker = dir.appendingPathComponent(".metadata_never_index")
+        if !FileManager.default.fileExists(atPath: marker.path) {
+            FileManager.default.createFile(atPath: marker.path, contents: nil)
+        }
+    }
+
+    static var smartCleanup: Bool {
+        get { UserDefaults.standard.object(forKey: "smartCleanup") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "smartCleanup") }
+    }
+
+    /// How long an item stays when you never come back to it. Every paste-again buys more time.
+    /// Pinned items always stay.
+    static func lifetime(of item: ClipItem) -> TimeInterval {
+        let day: TimeInterval = 86_400
+        let uses = Double(item.useCount ?? 0)
+        if item.kind == .text, let t = item.text, isOneTimeCode(t) { return 20 * 60 }
+        let base: TimeInterval = item.kind == .image ? 10 * day : 45 * day
+        return base * (1 + uses * 2)
+    }
+
+    /// "483 920", "G-519302": codes that are useless minutes later.
+    static func isOneTimeCode(_ text: String) -> Bool {
+        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard t.count <= 12 else { return false }
+        let digits = t.filter(\.isNumber)
+        let rest = t.filter { !$0.isNumber && $0 != " " && $0 != "-" }
+        return (5...8).contains(digits.count) && rest.count <= 2 && !t.contains(".") && !t.contains(":")
+    }
+
+    /// Removes what you are not going to use again, then shrinks old screenshots.
+    /// Runs at launch and every hour, quietly, never while you are looking at the panel.
+    func cleanUp() {
+        guard Self.smartCleanup else { return }
+        let now = Date()
+        let expired = items.filter { !$0.pinned && now.timeIntervalSince($0.lastUsed ?? $0.createdAt) > Self.lifetime(of: $0) }
+        if !expired.isEmpty {
+            let ids = Set(expired.map(\.id))
+            expired.forEach(removeBlob)
+            items.removeAll { ids.contains($0.id) }
+            Diag.log("cleanup removed \(expired.count) unused item(s)")
+        }
+        // Storage ceiling: if images pass 1.5 GB, the oldest unused images go first.
+        var bytes = imageBytes()
+        if bytes > 1_500_000_000 {
+            for item in items.reversed() where item.kind == .image && !item.pinned && (item.useCount ?? 0) == 0 {
+                guard bytes > 1_200_000_000 else { break }
+                bytes -= blobSize(item)
+                removeBlob(item)
+                items.removeAll { $0.id == item.id }
+            }
+        }
+        compactOldImages()
+        save()
+    }
+
+    /// Screenshots older than two days are re-saved as high-quality HEIC (about a tenth of the
+    /// size, same look). Recent and pinned ones keep their original pixels.
+    private func compactOldImages() {
+        let cutoff = Date().addingTimeInterval(-2 * 86_400)
+        for i in items.indices where items[i].kind == .image && !items[i].pinned && items[i].createdAt < cutoff {
+            guard let name = items[i].blobName, name.hasSuffix(".png") else { continue }
+            let src = blobsDir.appendingPathComponent(name)
+            let heicName = name.replacingOccurrences(of: ".png", with: ".heic")
+            let dst = blobsDir.appendingPathComponent(heicName)
+            guard let source = CGImageSourceCreateWithURL(src as CFURL, nil),
+                  let cg = CGImageSourceCreateImageAtIndex(source, 0, nil),
+                  let dest = CGImageDestinationCreateWithURL(dst as CFURL, "public.heic" as CFString, 1, nil) else { continue }
+            CGImageDestinationAddImage(dest, cg, [kCGImageDestinationLossyCompressionQuality: 0.86] as CFDictionary)
+            guard CGImageDestinationFinalize(dest) else { try? FileManager.default.removeItem(at: dst); continue }
+            items[i].blobName = heicName
+            try? FileManager.default.removeItem(at: src)
+        }
+    }
+
+    func imageBytes() -> Int { items.filter { $0.kind == .image }.reduce(0) { $0 + blobSize($1) } }
+
+    private func blobSize(_ item: ClipItem) -> Int {
+        guard let name = item.blobName,
+              let size = try? blobsDir.appendingPathComponent(name).resourceValues(forKeys: [.fileSizeKey]).fileSize else { return 0 }
+        return size
     }
 
     private func removeBlob(_ item: ClipItem) {

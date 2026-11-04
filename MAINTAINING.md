@@ -1,4 +1,4 @@
-# Maintaining G's Clipboard
+# Maintaining Gautham's Clipboard
 
 Notes for the owner (Gautam). Everything here is optional reading for users.
 
@@ -17,7 +17,7 @@ Then create the repo and push the first commit:
 cd ~/Projects/gs-clipboard
 git init -b main
 git add -A
-git commit -m "G's Clipboard 1.0.0"
+git commit -m "Gautham's Clipboard 1.0.0"
 gh repo create GauthamWho/gs-clipboard --public --source=. --push \
   --description "A free, local clipboard manager for macOS with a Windows+V-style panel."
 gh repo edit GauthamWho/gs-clipboard \
@@ -37,7 +37,7 @@ gh repo edit GauthamWho/gs-clipboard --enable-issues
 
 ```bash
 git add -A
-git commit -m "G's Clipboard 1.0.1"
+git commit -m "Gautham's Clipboard 1.0.1"
 git push
 ```
 
@@ -65,7 +65,7 @@ it. Nobody downloads anything manually.
 
 ```bash
 ./build.sh
-open "build/G's Clipboard.app"
+open "build/Gautham's Clipboard.app"
 ```
 
 Test text capture, image capture, ⌥V, search, pin, and the About/Settings
@@ -75,9 +75,9 @@ To test the updater without publishing:
 
 ```bash
 VERSION=1.0.1 ./build.sh
-ditto -c -k --keepParent "build/G's Clipboard.app" /tmp/test.zip
-GS_UPDATE_DEST="/tmp/test-install/G's Clipboard.app" \
-  "/Applications/G's Clipboard.app/Contents/MacOS/GsClipboard" \
+ditto -c -k --keepParent "build/Gautham's Clipboard.app" /tmp/test.zip
+GS_UPDATE_DEST="/tmp/test-install/Gautham's Clipboard.app" \
+  "/Applications/Gautham's Clipboard.app/Contents/MacOS/GsClipboard" \
   --install-update /tmp/test.zip
 ```
 
@@ -86,7 +86,7 @@ GS_UPDATE_DEST="/tmp/test-install/G's Clipboard.app" \
 - Everything is local. There is no analytics, no crash reporting, no account.
 - The only server contact is the daily release check.
 - Clipboard history lives in
-  `~/Library/Application Support/G's Clipboard/`.
+  `~/Library/Application Support/Gautham's Clipboard/`.
 - The app does not request Accessibility, Screen Recording, or Full Disk
   Access.
 
@@ -122,7 +122,7 @@ GitHub lets you set a repository image in **Settings → Social preview**. Use
 | What | Where |
 |---|---|
 | App name, version, copyright | `build.sh` (Info.plist section) |
-| Icon | `tools/make-icon.swift` then run `swift tools/make-icon.swift` |
+| Icon | Drawn in code (`ClipMark` in `DesignSystem.swift`). Run `GsClipboard --brand-assets Resources`, then `iconutil -c icns Resources/AppIcon.iconset -o Resources/AppIcon.icns` |
 | GitHub/Instagram links | `README.md`, `AboutView.swift`, `SettingsView.swift`, `PRIVACY.md`, `LICENSE` |
 | Update repo | `UpdateChecker.swift` (`repoOwner`, `repoName`) |
 | Installer | `install.sh` |
@@ -136,12 +136,12 @@ When someone reports a problem:
 3. If the app will not open, ask them to run:
 
    ```bash
-   xattr -dr com.apple.quarantine "/Applications/G's Clipboard.app"
+   xattr -dr com.apple.quarantine "/Applications/Gautham's Clipboard.app"
    ```
 
 4. If their history is gone, check
-   `~/Library/Application Support/G's Clipboard/`.
-5. If a copy "did not appear", open `~/Library/Logs/G's Clipboard.log`. Every
+   `~/Library/Application Support/Gautham's Clipboard/`.
+5. If a copy "did not appear", open `~/Library/Logs/Gautham's Clipboard.log`. Every
    capture is logged as `captured text change=… len=…` and every panel update as
    `panel refreshed … -> … items`. If the capture line is there but the refresh
    line is missing, the panel is not updating — that was the 1.0.0 bug, fixed in

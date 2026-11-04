@@ -20,12 +20,12 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
-echo "==> Building G's Clipboard $VERSION (Apple Silicon + Intel)..."
-VERSION="$VERSION" BUILD_NUMBER="$(date +%Y%m%d%H%M)" UNIVERSAL=1 ./build.sh
+echo "==> Building Gautham's Clipboard $VERSION (Apple Silicon + Intel)..."
+SIGN_ID=- VERSION="$VERSION" BUILD_NUMBER="$(date +%Y%m%d%H%M)" UNIVERSAL=1 ./build.sh
 
 ZIP="GsClipboard.app.zip"
 rm -f "$ZIP" "$ZIP.sha256"
-ditto -c -k --keepParent "build/G's Clipboard.app" "$ZIP"
+ditto -c -k --keepParent "build/Gautham's Clipboard.app" "$ZIP"
 shasum -a 256 "$ZIP" > "$ZIP.sha256"
 
 if gh release view "v$VERSION" >/dev/null 2>&1; then
@@ -34,7 +34,7 @@ if gh release view "v$VERSION" >/dev/null 2>&1; then
 else
     echo "==> Publishing release v$VERSION..."
     gh release create "v$VERSION" "$ZIP" "$ZIP.sha256" \
-        --title "G's Clipboard $VERSION" \
+        --title "Gautham's Clipboard $VERSION" \
         --notes "See CHANGELOG.md for what's new in $VERSION." \
         --latest
 fi

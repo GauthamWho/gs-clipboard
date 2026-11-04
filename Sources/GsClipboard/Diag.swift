@@ -2,7 +2,7 @@ import Foundation
 
 /// Tiny local-only diagnostic log.
 ///
-/// Written to `~/Library/Logs/G's Clipboard.log` so problems like "my copy did
+/// Written to `~/Library/Logs/Gautham's Clipboard.log` so problems like "my copy did
 /// not show up" can be diagnosed without a debugger. It records clipboard
 /// change counts, the kind of item captured, and panel show/hide events.
 /// Nothing is ever sent anywhere. Delete the file at any time.
@@ -14,7 +14,7 @@ enum Diag {
             .urls(for: .libraryDirectory, in: .userDomainMask).first!
             .appendingPathComponent("Logs", isDirectory: true)
         try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
-        return base.appendingPathComponent("G's Clipboard.log")
+        return base.appendingPathComponent("Gautham's Clipboard.log")
     }
 
     static func log(_ message: String) {

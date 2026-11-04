@@ -10,6 +10,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotKey = HotKeyManager()
     private let updates = UpdateChecker.shared
     private var previousApp: NSRunningApplication?
+    private var state: PanelState!
+    private var preview: PreviewController!
     private var aboutWindow: NSWindow?
     private var settingsWindow: NSWindow?
 
@@ -19,8 +21,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // CLI helpers used by the installer and release tooling.
+        BrandAssets.runIfRequested()
         if CommandLine.arguments.contains("--version") {
-            print("G's Clipboard \(version)")
+            print("Gautham's Clipboard \(version)")
             NSApp.terminate(nil)
             return
         }
@@ -98,29 +101,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        panel = PanelController {
-            ContentView(
-                model: model,
-                updates: updates,
-                onClose: { [weak self] in self?.closePanel() },
-                onOpenSettings: { [weak self] in self?.showSettings() }
-            )
+        state = PanelState(model: model)
+        state.onPick = { [weak self] item, paste in self?.pick(item, paste: paste) }
+        state.onClose = { [weak self] in self?.closePanel() }
+        state.onPickEmojiText = { [weak self] text, type in self?.pickEmoji(text, type: type) }
+        state.onOpenSettings = { [weak self] in self?.showSettings() }
+        panel = PanelController { [unowned self] in
+            ContentView(state: self.state, model: self.model, updates: self.updates)
         }
-        panel.onHide = { [weak self] in self?.restorePreviousApp() }
+        panel.keyHandler = { [weak self] e in self?.state.handle(e) ?? false }
+        panel.onShow = { [weak self] in self?.state.prepareForShow() }
+        panel.onMouseMoved = { [weak self] in
+            guard let s = self?.state, !s.hoverArmed else { return }
+            s.hoverArmed = true
+        }
+        panel.onHide = { [weak self] in self?.preview.hide() }
+        preview = PreviewController(state: state, panel: panel)
+        model.startCare { [weak self] in self?.panel.isVisible ?? false }
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "doc.on.clipboard",
-                                   accessibilityDescription: "G's Clipboard")
-            button.image?.isTemplate = true
+            button.image = MenuBarMark.image()
             button.target = self
             button.action = #selector(statusItemClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "G's Clipboard — ⌥V"
+            button.toolTip = "Gautham's Clipboard — ⌥V"
         }
 
         hotKey.onPressed = { [weak self] in
-            self?.togglePanel()
+            self?.togglePanel(from: nil)
         }
         hotKey.register()
 
@@ -131,17 +140,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if CommandLine.arguments.contains("--show") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.showPanel()
-            }
-        }
-
-        if let flag = CommandLine.arguments.firstIndex(of: "--snapshot"),
-           flag + 1 < CommandLine.arguments.count {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
                 guard let self else { return }
-                let url = URL(fileURLWithPath: CommandLine.arguments[flag + 1])
-                self.panel.snapshot(to: url)
-                NSApp.terminate(nil)
+                self.showPanel(at: .caret(NSRect(x: 900, y: 700, width: 4, height: 20)))
+                // Debug: `--show --filter Images` opens on a filter (used for screenshots).
+                let args = CommandLine.arguments
+                if let i = args.firstIndex(of: "--filter"), i + 1 < args.count,
+                   let f = PanelState.Filter(rawValue: args[i + 1]) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self.state.filter = f
+                        self.state.selectedID = self.state.visible.first?.id
+                    }
+                }
             }
         }
 
@@ -181,7 +190,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if NSApp.currentEvent?.type == .rightMouseUp {
             showStatusMenu()
         } else {
-            togglePanel()
+            togglePanel(from: statusItem.button)
         }
     }
 
@@ -190,7 +199,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let menu = NSMenu()
 
-        let about = NSMenuItem(title: "About G's Clipboard", action: #selector(showAbout), keyEquivalent: "")
+        let about = NSMenuItem(title: "About Gautham's Clipboard", action: #selector(showAbout), keyEquivalent: "")
         about.target = self
         menu.addItem(about)
 
@@ -212,7 +221,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
 
-        let quit = NSMenuItem(title: "Quit G's Clipboard", action: #selector(quitFromMenu), keyEquivalent: "q")
+        let quit = NSMenuItem(title: "Quit Gautham's Clipboard", action: #selector(quitFromMenu), keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)
 
@@ -245,7 +254,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if aboutWindow == nil {
             let hosting = NSHostingController(rootView: AboutView())
             let window = NSWindow(contentViewController: hosting)
-            window.title = "About G's Clipboard"
+            window.title = "About Gautham's Clipboard"
             window.styleMask = [.titled, .closable, .fullSizeContentView]
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
@@ -264,7 +273,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if settingsWindow == nil {
             let hosting = NSHostingController(rootView: SettingsView())
             let window = NSWindow(contentViewController: hosting)
-            window.title = "G's Clipboard Settings"
+            window.title = "Gautham's Clipboard Settings"
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
             settingsWindow = window
@@ -277,29 +286,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Panel
 
-    @objc private func togglePanel() {
-        if panel.isVisible {
-            closePanel()
+    /// Menu bar icon: drop down under it. Shortcut: open right next to your text cursor.
+    private func togglePanel(from button: NSStatusBarButton?) {
+        if panel.isVisible { closePanel(); return }
+        // Find the caret before we take focus, while your app still has it.
+        if let button, let window = button.window {
+            showPanel(at: .statusItem(window.convertToScreen(button.convert(button.bounds, to: nil))))
         } else {
-            showPanel()
+            showPanel(at: Caret.anchor())
         }
     }
 
-    private func showPanel() {
+    private func showPanel(at anchor: PanelAnchor) {
         if !panel.isVisible {
             previousApp = NSWorkspace.shared.frontmostApplication
         }
-        panel.show()
+        panel.show(at: anchor)
     }
 
     private func closePanel() {
         panel.hide()
+        restorePreviousApp()
     }
 
-    /// Hands focus back so the next ⌘V lands in whatever app you were using.
-    private func restorePreviousApp() {
-        if let previousApp, previousApp.bundleIdentifier != Bundle.main.bundleIdentifier {
-            previousApp.activate(options: [])
+    /// Puts the item on the clipboard, closes the panel, hands focus back to the app you were
+    /// in, then (if allowed) presses ⌘V there so it lands where your cursor was.
+    private func pick(_ item: ClipItem, paste: Bool) {
+        model.copy(item)
+        let target = previousApp
+        closePanel()
+        Diag.log("picked \(item.kind.rawValue) paste=\(paste) trusted=\(Paster.isTrusted) target=\(target?.localizedName ?? "?")")
+        if paste && Paster.enabled { Paster.paste(into: target) }
+    }
+
+    /// Emoji are typed directly (the clipboard keeps what you had). Without Accessibility,
+    /// or with ⌥↩, the emoji is copied instead.
+    private func pickEmoji(_ text: String, type: Bool) {
+        let target = previousApp
+        closePanel()
+        if type && Paster.enabled && Paster.isTrusted {
+            Paster.type(text, into: target)
+        } else {
+            model.monitor.ignoreNextChange = true
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
         }
+    }
+
+    /// Hands focus back so the paste lands in whatever app you were using.
+    private func restorePreviousApp() {
+        guard let previousApp, previousApp.bundleIdentifier != Bundle.main.bundleIdentifier, !previousApp.isTerminated else { return }
+        if #available(macOS 14.0, *) { NSApp.yieldActivation(to: previousApp) }
+        previousApp.activate(options: [])
     }
 }

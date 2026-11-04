@@ -22,7 +22,7 @@ struct AboutView: View {
 
                 Divider()
 
-                linkRow("Made by", value: "Gautam Who", url: "https://instagram.com/gautamwho")
+                linkRow("Made by", value: "GauthamWho", url: "https://instagram.com/gautamwho")
                 linkRow("Instagram", value: "@gautamwho", url: "https://instagram.com/gautamwho")
                 linkRow("GitHub", value: "GauthamWho/gs-clipboard", url: "https://github.com/GauthamWho/gs-clipboard")
                 linkRow("License", value: "Free personal use", url: "https://github.com/GauthamWho/gs-clipboard/blob/main/LICENSE")
@@ -38,7 +38,7 @@ struct AboutView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Text("© 2026 Gautam Who. All rights reserved.")
+                Text("© 2026 GauthamWho. All rights reserved.")
                     .font(.system(size: 10, design: .rounded))
                     .foregroundStyle(.tertiary)
             }
@@ -58,7 +58,7 @@ struct AboutView: View {
                     .resizable()
                     .frame(width: 76, height: 76)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("G's Clipboard")
+                    Text("Gautham's Clipboard")
                         .font(.system(size: 26, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
                     Text("Copy once. Find it forever.")
