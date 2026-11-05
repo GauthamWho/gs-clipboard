@@ -6,6 +6,7 @@ struct SettingsView: View {
     @AppStorage("autoCheckUpdates") private var autoCheckUpdates: Bool = true
     @State private var launchAtLogin: Bool = (SMAppService.mainApp.status == .enabled)
     @ObservedObject private var updates = UpdateChecker.shared
+    @ObservedObject private var hotKey = HotKeyManager.shared
     @AppStorage("pasteAfterPick") private var pasteAfterPick: Bool = true
     @AppStorage("smartCleanup") private var smartCleanup: Bool = true
     @State private var storage = "…"
@@ -16,6 +17,24 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section {
+                HStack {
+                    Text("Open the clipboard")
+                    Spacer()
+                    ShortcutRecorder()
+                }
+                if hotKey.waitingForPermission {
+                    Text("fn shortcuts need Accessibility (the same permission as paste). Turn it on below; until then, click the menu bar icon.")
+                        .font(.caption).foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("Pick a combination no other app uses. fn shortcuts never clash with apps like TradingView.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            } header: {
+                Text("Shortcut")
+            }
+
             Section {
                 Toggle("Paste into the app I was using", isOn: $pasteAfterPick)
                 Text("Picks are typed where your cursor was. Needs Accessibility.")
@@ -127,7 +146,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 460, height: 820)
+        .frame(width: 460, height: 900)
         .onReceive(tick) { _ in trusted = Paster.isTrusted }
         .onAppear {
             trusted = Paster.isTrusted

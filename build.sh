@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 
 APP_NAME="Gautham's Clipboard"
 EXECUTABLE="GsClipboard"
-VERSION="${VERSION:-2.0.0}"
+VERSION="${VERSION:-2.1.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 
 echo "==> Building $APP_NAME $VERSION ($BUILD_NUMBER)..."

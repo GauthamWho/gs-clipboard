@@ -56,9 +56,12 @@ The app does not include any other networking code.
 ## Permissions
 
 - Accessibility (optional): used only to (1) press ⌘V or type an emoji in the app
-  you were using, and (2) read the position of your text cursor in that app's
-  focused field, so the panel opens beside it. It does not read the text in other
-  apps, record keys, or look at other windows.
+  you were using, (2) read the position of your text cursor in that app's focused
+  field, so the panel opens beside it, and (3) notice an **fn** shortcut (like the
+  default fn V). For (3) the app looks at each key press only to check whether it is
+  your shortcut; it never stores, logs or sends key presses, and every other key
+  passes straight through. It does not read the text in other apps or look at other
+  windows. Shortcuts without fn use the standard hot-key API and need no permission.
 - No Screen Recording permission.
 - No Full Disk Access.
 - No login to any service.

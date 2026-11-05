@@ -7,7 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var panel: PanelController!
     private var model: AppModel!
-    private let hotKey = HotKeyManager()
+    private let hotKey = HotKeyManager.shared
     private let updates = UpdateChecker.shared
     private var previousApp: NSRunningApplication?
     private var state: PanelState!
@@ -131,13 +131,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
             button.action = #selector(statusItemClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "Gautham's Clipboard — ⌥V"
+            button.toolTip = "Gautham's Clipboard — \(hotKey.display)"
         }
 
         hotKey.onPressed = { [weak self] in
             self?.togglePanel(from: nil)
         }
-        hotKey.register()
+        hotKey.start()
 
         // Check for updates quietly a few seconds after launch (once per day).
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in

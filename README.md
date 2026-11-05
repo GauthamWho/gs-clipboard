@@ -14,7 +14,7 @@
 </p>
 
 **Gautham's Clipboard** remembers everything you copy: text, links, screenshots,
-photos and files. Click into any text field, press **⌥V**, pick an item, and it is
+photos and files. Click into any text field, press **fn V**, pick an item, and it is
 **pasted right where your cursor is**. It also has every emoji, one shortcut away.
 
 No subscription. No account. No ads. Nothing leaves your Mac.
@@ -54,7 +54,7 @@ No subscription. No account. No ads. Nothing leaves your Mac.
 | | |
 |---|---|
 | 📋 **History** | Every text, link, image and file you copy, newest first. |
-| ⌨️ **Paste in place** | ⌥V, pick, done. It lands where your cursor was. |
+| ⌨️ **Paste in place** | fn V, pick, done. It lands where your cursor was. |
 | 🖼️ **Image previews** | 120 × 76 thumbnails, and a large preview on hover. |
 | 😀 **Emoji** | Every emoji, searchable, typed straight in. |
 | 🔎 **Search and filters** | Type to search; All, Text, Images, Files, Pinned, Emoji. |
@@ -111,7 +111,7 @@ your text cursor so the panel opens next to it.
 ## How it works
 
 1. **Copy** text, a screenshot or a file like you always do.
-2. **Click** into the field where you want it, and press **⌥V**.
+2. **Click** into the field where you want it, and press **fn V**.
 3. The panel opens right under your cursor. **Pick** an item (click, ↩, or ⌘1–9).
 4. It is pasted there. Done.
 
@@ -121,7 +121,7 @@ The usual Mac keys, so nothing breaks your habits.
 
 | Key | What it does |
 |---|---|
-| **⌥V** | Open or close, from anywhere |
+| **fn V** | Open or close, from anywhere (change it in Settings → Shortcut) |
 | **↑ ↓** | Move the selection |
 | **↩** | Paste into the app you were in |
 | **⌥↩** | Copy only (no paste) |
@@ -239,11 +239,16 @@ icon or ⌘⌫.
 </details>
 
 <details>
-<summary><b>Why ⌥V and not Fn+V or Windows+V?</b></summary>
+<summary><b>Why fn V? Can I change it?</b></summary>
 
-macOS does not let normal apps capture the **Fn** key, and **⌘V** is already the
-system paste. **⌥V** works everywhere, needs no permission to open the panel, and
-sits where your fingers expect Windows+V.
+**fn V** never clashes with other apps' shortcuts (⌥V, for example, draws a
+vertical line in TradingView). macOS only lets an app see the **fn** key with the
+Accessibility permission, the same one paste-in-place uses. Until it is on, open
+the clipboard from the menu bar icon.
+
+Change it any time in **Settings → Shortcut**: click the button and press the
+keys you want (it needs fn, ⌃, ⌥ or ⌘, and standard shortcuts like ⌘V or ⌘C are refused). Shortcuts without fn need no
+permission at all.
 </details>
 
 <details>
@@ -262,9 +267,11 @@ Or open **System Settings → Privacy & Security** and click **Open Anyway**.
 </details>
 
 <details>
-<summary><b>⌥V does nothing.</b></summary>
+<summary><b>The shortcut does nothing.</b></summary>
 
-Another app may already use that shortcut, or an old clipboard manager (including
+If it uses **fn**, check that Gautham's Clipboard is on in **System Settings →
+Privacy & Security → Accessibility**. Otherwise another app may already use that
+shortcut (pick a different one in Settings → Shortcut), or an old clipboard manager (including
 the old "G's Clipboard") may still be running. Quit it, and make sure Gautham's
 Clipboard is running (the G icon in the menu bar). The log stays on your Mac:
 
@@ -314,7 +321,7 @@ shows is in [`design/CONTENT.md`](design/CONTENT.md).
 | `ClipboardMonitor.swift` | Watches the clipboard, skips private copies |
 | `DesignSystem.swift`, `Glass.swift`, `Physics.swift` | Tokens, logo, glass, pointer effects |
 | `UpdateChecker.swift` | GitHub release check + in-place update |
-| `HotKeyManager.swift` | Global ⌥V shortcut |
+| `HotKeyManager.swift`, `ShortcutRecorder.swift` | The shortcut (fn V by default) and its recorder |
 
 `./build.sh` signs with your Apple Development certificate when you have one, so
 macOS keeps the Accessibility permission across rebuilds. Regenerate the icon

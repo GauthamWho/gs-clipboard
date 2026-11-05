@@ -16,7 +16,7 @@ struct AboutView: View {
                     .font(.system(.caption, design: .rounded).weight(.medium))
                     .foregroundStyle(.secondary)
 
-                Text("A free clipboard history for macOS. Copy text or screenshots, press ⌥V, and everything you copied is right there — no account, no subscription.")
+                Text("A free clipboard history for macOS. Copy text or screenshots, press \(HotKeyManager.shared.display), and everything you copied is right there — no account, no subscription.")
                     .font(.system(.body, design: .rounded))
                     .fixedSize(horizontal: false, vertical: true)
 

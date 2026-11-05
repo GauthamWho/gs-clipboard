@@ -21,6 +21,17 @@ were fixed in the next commit:
 | One-time codes could stay up to an hour | Cleanup runs every 5 minutes |
 | Debug flags (`--install-update`, `--dump`, `--selftest`) shipped in release builds | Compiled out of release builds |
 
+### 2.1.0: the fn shortcut
+
+The new fn shortcut watches key presses through a system event tap, so it got its
+own scoped audit (Cloudflare security-audit skill, quick profile). **Result: no
+confirmed vulnerabilities.** The tap only compares each key press with your
+shortcut; it never stores, logs or sends keys, and every other key passes through
+unchanged. Its hardening notes were applied: Shift-only shortcuts and standard
+ones like ⌘V or ⌘C are refused, a damaged saved setting falls back to fn V, holding
+the shortcut never types repeated letters, and the tap is fully released when the
+shortcut changes.
+
 ## Known limit
 
 Releases are not yet signed with an Apple Developer ID or notarized, so updates are

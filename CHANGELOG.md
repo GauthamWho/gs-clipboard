@@ -3,6 +3,20 @@
 All notable changes to Gautham's Clipboard are listed here.
 This project follows [semantic versioning](https://semver.org).
 
+## [2.1.0] — 2026-11-05
+
+### Changed
+- **New default shortcut: fn V**, so it never clashes with app shortcuts
+  (⌥V draws a vertical line in TradingView). Needs Accessibility, the same
+  permission as paste; until then the menu bar icon opens the clipboard.
+- **Change the shortcut** in Settings → Shortcut: click and press any combination.
+  Shortcuts without fn need no permission.
+
+### Security
+- Scoped Cloudflare security audit of the new shortcut: no findings. Hardening
+  applied: Shift-only and standard shortcuts (⌘V, ⌘C, ⌘Q…) refused, damaged
+  settings fall back to fn V, held shortcut never repeats into the app.
+
 ## [2.0.0] — 2026-11-05
 
 ### New

@@ -6,6 +6,7 @@ struct ContentView: View {
     @ObservedObject var state: PanelState
     @ObservedObject var model: AppModel
     @ObservedObject var updates: UpdateChecker
+    @ObservedObject private var hotKey = HotKeyManager.shared
     @FocusState private var searchFocused: Bool
     @State private var arrived = false
     @Namespace private var selection
@@ -50,7 +51,7 @@ struct ContentView: View {
                 .font(DS.Text.search)
                 .focused($searchFocused)
             if state.search.isEmpty {
-                Text("⌥V").font(DS.Text.badge).foregroundStyle(DS.Palette.meta)
+                Text(hotKey.display).font(DS.Text.badge).foregroundStyle(DS.Palette.meta)
                     .padding(.horizontal, 6).padding(.vertical, 1)
                     .background(DS.Palette.fill, in: RoundedRectangle(cornerRadius: 5, style: .continuous))
             } else {
@@ -361,7 +362,7 @@ struct PermissionCard: View {
                 Image(systemName: "cursorarrow.click.2").font(.system(size: 11, weight: .medium)).foregroundStyle(DS.Palette.tint)
                 Text("Paste right where you clicked").font(DS.Text.name)
             }
-            Text("macOS needs your OK once: turn on \(Brand.name) in Privacy & Security › Accessibility. Until then, picks are copied and you press ⌘V.")
+            Text("macOS needs your OK once: turn on \(Brand.name) in Privacy & Security › Accessibility. It lets \(HotKeyManager.shared.display) open the clipboard and paste where you clicked. Until then, picks are copied and you press ⌘V.")
                 .font(DS.Text.meta).foregroundStyle(DS.Palette.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 6) {
@@ -398,7 +399,7 @@ struct EmptyState: View {
             Text(hasHistory ? (query.isEmpty ? "Nothing in this filter" : "No match for \"\(query)\"") : "Nothing here yet")
                 .font(DS.Text.title).foregroundStyle(DS.Palette.label)
             if !hasHistory {
-                Text("Copy text, links or screenshots.\nPress ⌥V to bring them back.")
+                Text("Copy text, links or screenshots.\nPress \(HotKeyManager.shared.display) to bring them back.")
                     .font(DS.Text.meta).foregroundStyle(DS.Palette.secondary).multilineTextAlignment(.center)
             }
         }

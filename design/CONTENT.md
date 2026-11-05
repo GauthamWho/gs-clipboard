@@ -8,7 +8,7 @@ Keyboard glyphs are the real Mac ones: ⌘ ⌥ ⇧ ↩ ⎋ ⌫.
 |---|---|
 | App name | Gautham's Clipboard |
 | Maker | by GauthamWho |
-| Menu bar tooltip | Gautham's Clipboard · ⌥V |
+| Menu bar tooltip | Gautham's Clipboard · fn V |
 | Copyright | © 2026 GauthamWho. All rights reserved. |
 
 ## Panel
@@ -26,7 +26,7 @@ Keyboard glyphs are the real Mac ones: ⌘ ⌥ ⇧ ↩ ⎋ ⌫.
 | Footer hints | ↩ Paste · ⌥↩ Copy · ⌘1–9 · ⌘E Emoji (↩ Copy when paste is not allowed) |
 | Footer count | 128 items |
 | Empty title | Nothing here yet |
-| Empty body | Copy text, links or screenshots. Press ⌥V to bring them back. |
+| Empty body | Copy text, links or screenshots. Press fn V to bring them back. |
 | No matches | No match for "{query}" |
 
 ## Large preview (hover or arrow onto an image)
@@ -48,6 +48,8 @@ Paste · Copy only · Pin / Unpin · Delete
 ## Settings
 | Where | Text |
 |---|---|
+| Shortcut | Open the clipboard · [fn V] · Reset to fn V · Pick a combination no other app uses. fn shortcuts never clash with apps like TradingView. |
+| Shortcut waiting | fn shortcuts need Accessibility (the same permission as paste). Turn it on below; until then, click the menu bar icon. |
 | Paste toggle | Paste into the app I was using |
 | Paste help | Picks are typed where your cursor was. Needs Accessibility. |
 | Permission status | Allowed / Not allowed yet · Open Settings |
@@ -64,7 +66,7 @@ About Gautham's Clipboard · Check for Updates… · Settings… ⌘, · Quit Ga
 ## Shortcuts (kept the same as every Mac clipboard manager)
 | Key | Action |
 |---|---|
-| ⌥V | Open / close |
+| fn V (changeable) | Open / close |
 | ↑ ↓ | Move selection |
 | ↩ | Paste into the app you were in |
 | ⌥↩ | Copy only (no paste) |
